@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import type { Guest, Rsvp } from '@/types'
+import QRModal from './QRModal'
 
 type GuestsClientProps = {
   weddingId: string
   guests: Guest[]
   rsvps: Pick<Rsvp, 'guest_name' | 'attendance'>[]
+  weddingSlug?: string
 }
 
 const statusBadge = {
@@ -16,7 +18,7 @@ const statusBadge = {
   belum: 'bg-gray-100 text-gray-500',
 } as const
 
-export default function GuestsClient({ weddingId, guests, rsvps }: GuestsClientProps) {
+export default function GuestsClient({ weddingId, guests, rsvps, weddingSlug }: GuestsClientProps) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'hadir' | 'menunggu'>('all')
   const [adding, setAdding] = useState(false)
@@ -24,6 +26,7 @@ export default function GuestsClient({ weddingId, guests, rsvps }: GuestsClientP
   const [phone, setPhone] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [qrGuest, setQrGuest] = useState<Guest | null>(null)
 
   const rsvpByGuest = useMemo(() => {
     const map = new Map<string, Rsvp['attendance']>()
@@ -219,17 +222,24 @@ export default function GuestsClient({ weddingId, guests, rsvps }: GuestsClientP
                           {status === 'hadir' ? 'Hadir' : status === 'ragu' ? 'Menunggu' : status === 'tidak' ? 'Tidak' : 'Belum'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => deleteGuest(g.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                            title="Hapus"
-                          >
-                            <span className="material-symbols-outlined text-[20px]">delete</span>
-                          </button>
-                        </div>
-                      </td>
+                       <td className="px-6 py-4 text-right">
+                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button
+                             onClick={() => setQrGuest(g)}
+                             className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/5 rounded transition-colors"
+                             title="QR Check-in"
+                           >
+                             <span className="material-symbols-outlined text-[20px]">qr_code_2</span>
+                           </button>
+                           <button
+                             onClick={() => deleteGuest(g.id)}
+                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                             title="Hapus"
+                           >
+                             <span className="material-symbols-outlined text-[20px]">delete</span>
+                           </button>
+                         </div>
+                       </td>
                     </tr>
                   )
                 })
@@ -238,6 +248,10 @@ export default function GuestsClient({ weddingId, guests, rsvps }: GuestsClientP
           </table>
         </div>
       </div>
+
+      {qrGuest && weddingSlug && (
+        <QRModal guest={qrGuest} slug={weddingSlug} onClose={() => setQrGuest(null)} />
+      )}
     </div>
   )
 }

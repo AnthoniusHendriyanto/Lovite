@@ -33,7 +33,7 @@ export default async function GuestsPage() {
 
   return (
     <DashboardLayout wedding={wedding} avatarUrl={user.user_metadata?.avatar_url as string | undefined}>
-      <GuestsClient weddingId={wedding.id} guests={guests ?? []} rsvps={rsvps ?? []} />
+      <GuestsClient weddingId={wedding.id} guests={guests ?? []} rsvps={rsvps ?? []} weddingSlug={wedding.slug} />
     </DashboardLayout>
   )
 }

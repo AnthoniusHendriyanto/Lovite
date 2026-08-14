@@ -8,7 +8,9 @@ type AnalyticsClientProps = {
   tidak: number
 }
 
-export default function AnalyticsClient({ guestCount, rsvpCount, messageCount, hadir, tidak }: AnalyticsClientProps) {
+export default function AnalyticsClient({ guestCount, rsvpCount, messageCount, hadir }: AnalyticsClientProps) {
+  const rsvpRate = guestCount > 0 ? Math.round((rsvpCount / guestCount) * 100) : 0
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
@@ -24,10 +26,10 @@ export default function AnalyticsClient({ guestCount, rsvpCount, messageCount, h
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon="group" label="Total Tamu" value={String(guestCount)} sub="Terdaftar dalam daftar tamu" />
-        <StatCard icon="drafts" label="Buka Undangan" value="—" sub="Butuh pelacakan kunjungan" muted />
-        <StatCard icon="how_to_reg" label="RSVP" value={String(rsvpCount)} sub={`Hadir: ${hadir}, Tidak: ${tidak}`} />
-        <StatCard icon="chat_bubble_outline" label="Ucapan" value={String(messageCount)} sub="Total pesan & doa" />
+        <StatCard icon="group" label="Tamu Terdaftar" value={String(guestCount)} sub="Daftar tamu aktif" trend={{ value: 0, type: 'neutral' }} />
+        <StatCard icon="drafts" label="Pengunjung Undangan" value="—" sub="Memerlukan pelacakan aktif" muted trend={{ value: 0, type: 'neutral' }} />
+        <StatCard icon="how_to_reg" label="RSVP" value={String(rsvpCount)} sub={`${rsvpRate}% respon | Hadir: ${hadir}`} trend={{ value: rsvpRate, type: rsvpRate > 50 ? 'up' : 'down' }} />
+        <StatCard icon="chat_bubble_outline" label="Ucapan" value={String(messageCount)} sub="Total pesan & doa" trend={{ value: messageCount > 0 ? 5 : 0, type: messageCount > 0 ? 'up' : 'neutral' }} />
       </div>
 
       <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-stone-100 mb-8">
@@ -98,7 +100,10 @@ export default function AnalyticsClient({ guestCount, rsvpCount, messageCount, h
   )
 }
 
-function StatCard({ icon, label, value, sub, muted }: { icon: string; label: string; value: string; sub: string; muted?: boolean }) {
+function StatCard({ icon, label, value, sub, muted, trend }: { icon: string; label: string; value: string; sub: string; muted?: boolean; trend?: { value: number; type: 'up' | 'down' | 'neutral' } }) {
+  const trendColor = trend?.type === 'up' ? '#2E7D32' : trend?.type === 'down' ? '#C62828' : '#9E989E'
+  const trendIcon = trend?.type === 'up' ? 'trending_up' : trend?.type === 'down' ? 'trending_down' : 'trending_flat'
+
   return (
     <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 hover:shadow-md transition-shadow relative overflow-hidden">
       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
@@ -107,8 +112,20 @@ function StatCard({ icon, label, value, sub, muted }: { icon: string; label: str
           <p className="text-text-muted text-sm font-medium mb-1">{label}</p>
           <h3 className={`font-headline text-3xl font-bold ${muted ? 'text-text-muted' : 'text-text'}`}>{value}</h3>
         </div>
-        <div className="p-2.5 bg-stone-50 rounded-xl text-primary">
-          <span className="material-symbols-outlined">{icon}</span>
+        <div className="flex flex-col items-end gap-2">
+          <div className="p-2.5 bg-stone-50 rounded-xl text-primary">
+            <span className="material-symbols-outlined">{icon}</span>
+          </div>
+          {trend && trend.value > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md" style={{ backgroundColor: `${trendColor}20` }}>
+              <span className="material-symbols-outlined text-[14px]" style={{ color: trendColor }}>
+                {trendIcon}
+              </span>
+              <span className="text-xs font-medium" style={{ color: trendColor }}>
+                {trend.value}%
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <p className="mt-3 text-xs text-text-muted font-body relative z-10">{sub}</p>
